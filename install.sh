@@ -1,15 +1,6 @@
 #!/bin/bash
 
 # Surface Pro 6 Complete Setup Script
-# Single script - does everything: install kernel, set up, and OEM reset
-
-set -e
-
-# Check if running as root
-if [ "$EUID" -eq 0 ]; then 
-   echo "ERROR: Do not run with sudo. Run as: ./install.sh"
-   exit 1
-fi
 
 echo "=========================================="
 echo "Surface Pro 6 Ubuntu Setup"
@@ -24,17 +15,24 @@ echo "[2/8] Installing dependencies..."
 sudo apt install -y wget gnupg build-essential curl
 
 echo "[3/8] Adding Surface repository..."
-wget -qO - https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc | gpg --dearmor | sudo dd of=/etc/apt/trusted.gpg.d/linux-surface.gpg
+# Download GPG key with error handling
+if ! wget -qO - https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc | gpg --dearmor | sudo dd of=/etc/apt/trusted.gpg.d/linux-surface.gpg 2>&1; then
+    echo "GPG key download failed, trying alternative method..."
+    # Alternative: download key file first
+    wget -O /tmp/surface.asc https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc
+    gpg --dearmor /tmp/surface.asc | sudo dd of=/etc/apt/trusted.gpg.d/linux-surface.gpg
+fi
+
 echo "deb [arch=amd64] https://pkg.surfacelinux.com/debian release main" | sudo tee /etc/apt/sources.list.d/linux-surface.list
 sudo apt update
 
 echo "[4/8] Installing Surface kernel..."
-sudo apt install -y linux-image-surface linux-headers-surface libwacom-surface
+sudo apt install -y linux-image-surface linux-headers-surface libwacom-surface || echo "Kernel install had issues, continuing..."
 
 echo "[5/8] Loading kernel modules..."
-sudo modprobe surface_hid || true
-sudo modprobe surface_hid_core || true
-sudo modprobe hid_multitouch || true
+sudo modprobe surface_hid 2>/dev/null || true
+sudo modprobe surface_hid_core 2>/dev/null || true
+sudo modprobe hid_multitouch 2>/dev/null || true
 
 echo "[6/8] Configuring modules to load at boot..."
 echo -e "surface_hid\nsurface_hid_core\nhid_multitouch" | sudo tee /etc/modules-load.d/surface.conf
@@ -60,6 +58,4 @@ echo "3. Take screenshot for listing"
 echo ""
 echo "When ready to prepare for sale, run:"
 echo "  ~/reset.sh"
-echo ""
-echo "Or manually run: sudo oem-config-prepare"
 echo ""

@@ -8,8 +8,8 @@ echo "Surface Pro 6 OEM Reset"
 echo "=========================================="
 
 echo "[1/3] Cleaning temporary files..."
-sudo rm -rf /tmp/*
-sudo rm -rf /var/tmp/*
+sudo rm -rf /tmp/* 2>/dev/null || true
+sudo rm -rf /var/tmp/* 2>/dev/null || true
 rm -rf ~/.cache/* 2>/dev/null || true
 rm -rf ~/.local/share/Trash/* 2>/dev/null || true
 history -c 2>/dev/null || true
@@ -24,7 +24,7 @@ echo ""
 echo "System will shutdown. Be ready to power off!"
 echo ""
 sleep 3
-sudo oem-config-prepare || sudo shutdown now
+sudo oem-config-prepare || sudo shutdown -h now
 
 echo ""
 echo "DONE!"

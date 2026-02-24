@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Surface Pro 6 OEM Reset Script
-# Run after testing to prepare for end user
+# Run this after testing to prepare for end user
 
 echo "=========================================="
 echo "Surface Pro 6 OEM Reset"
